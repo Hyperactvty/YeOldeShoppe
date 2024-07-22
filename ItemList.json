@@ -1,0 +1,52 @@
+{
+  "template": {
+    "_id": "__template__",
+    "name": null,
+    "description": null,
+    "canHavePrefix": false,
+    "canHaveSuffix": false,
+    "rarityOverride": null,
+    "minLevelUnlock":0,
+    "requiredKeyEvents": [],
+    "price":0,
+    "origin":null
+  },
+  "items": [
+      {
+        "_id": "weapon_RustySword",
+        "name": "Rusty Sword",
+        "description": "Be sure to not cut yourself",
+        "canHavePrefix": false, 
+        "canHaveSuffix": false,
+        "rarityOverride": "Common",
+        "minLevelUnlock":0,
+        "requiredKeyEvents": [],
+        "price":25,
+        "origin":null
+      },
+      {
+        "_id": "cursed_Arm",
+        "name": "Mary's Left Arm",
+        "description": "No one truly knows why it is here, or why it was taken...",
+        "canHavePrefix": true, 
+        "canHaveSuffix": false,
+        "rarityOverride": "Cursed",
+        "minLevelUnlock":0,
+        "requiredKeyEvents": ["npc_stolen_MaryArm"],
+        "price":125,
+        "origin":"Mary's Body"
+      },
+      {
+        "_id": "beans",
+        "name": "Beans",
+        "description": "Beans.",
+        "canHavePrefix": false, 
+        "canHaveSuffix": false,
+        "rarityOverride": "Rubbish",
+        "minLevelUnlock":0,
+        "requiredKeyEvents": [],
+        "price":2,
+        "origin":null
+      }
+  ]
+}

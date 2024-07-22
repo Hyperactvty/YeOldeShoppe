@@ -1,0 +1,10 @@
+{
+  "npc":[
+    {
+      "_id": "mary",
+      "keyEvents":[ "npc_stolen_MaryArm" ],
+      "arrested": false,
+      "deceased": false
+    }
+  ]
+}

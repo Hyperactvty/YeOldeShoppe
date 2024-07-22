@@ -1,5 +1,6 @@
 import datetime
 import keyboard
+import json
 import sys
 import math
 import random
@@ -22,6 +23,15 @@ You can overthrow the monarchy if you so please. Effects:
     - Depending on how long the monarchy has been gone, militants or criminals may come in more often. May warrant more hired help to mitigate effect.
 
 """
+ITEM_LIST = []
+TIMELINE_HISTORY = {}
+KEY_EVENTS = {}
+
+# Assigning the items from `KeyEvents.json` to `KEY_EVENTS`
+jsonfile=open("./KeyEvents.json")
+KEY_EVENTS=json.load(jsonfile)
+jsonfile.close()
+
 
 class Settings:
   # class Mode:
@@ -40,14 +50,33 @@ class Item:
     Local: 0
     # Make a list of random names, like "Hrgaburt"
 
-  class Rarity:
-    Rubbish = {"type": "Rubbish", "col": "gray", "taxRate": 0}
-    Common = {"type": "Common", "col": "white", "taxRate": 5}
-    Rare = {"type": "Rare", "col": "blue", "taxRate": 10}
-    Epic = {"type": "Epic", "col": "purple", "taxRate": 20}
-    Legendary = {"type": "Legendary", "col": "orange", "taxRate": 50}
-    Exotic = {"type": "Exotic", "col": "red", "taxRate": 0, "desc": "You shouldn't have this..."} # red or black may be fitting
-    Cursed = {"type": "Cursed", "col": "dark_red", "taxRate": 0, "desc": "You shouldn't have this..."}
+  Rarity={
+      "Rubbish": {"type": "Rubbish", "col": "gray", "taxRate": 0},
+      "Common": {"type": "Common", "col": "white", "taxRate": 5},
+      "Rare": {"type": "Rare", "col": "blue", "taxRate": 10},
+      "Epic": {"type": "Epic", "col": "purple", "taxRate": 20},
+      "Legendary": {"type": "Legendary", "col": "orange", "taxRate": 50},
+      "Exotic": {"type": "Exotic", "col": "red", "taxRate": 0, "desc": "You shouldn't have this..."}, # red or black may be fitting
+      "Cursed": {"type": "Cursed", "col": "dark_red", "taxRate": 0, "desc": "You shouldn't have this..."}
+  }
+
+  def generateRandomItem(self):
+    r = None
+    # Do-while loop in Python
+    while(True): 
+      r = random.choice(list(ITEM_LIST))
+      # Does the `requiredKeyEvents` checks before allowing the item to be added, otherwise the loop choosed another item.
+      for _e in r["requiredKeyEvents"]:
+        if(KEY_EVENTS[_e]):
+          print(f"Found Event -> {_e}")
+          break 
+          continue
+      # any(_c in q for q in vals)
+      else: 
+        break
+    print(r.name)
+    # next(iter([_s for _s in Item.Rarity.items() if _s == _i["rarityOverride"]]), random.choice(list(Item.Rarity))),
+    return
 
   def __init__(self, _n: str, _d: str, _r: Rarity, _p: int, _o: Origin):
     self.name = _n
@@ -55,6 +84,19 @@ class Item:
     self.rarity = _r
     self.price = _p
     self.origin = _o
+
+# Adding the items from the `ItemList.json` to the list `ITEM_LIST`
+jsonfile=open("./ItemList.json")
+data=json.load(jsonfile)
+jsonfile.close()
+for _i in data["items"]:
+    i = Item(
+      _i["name"],_i["description"], 
+      next(iter([_s for _s in Item.Rarity.items() if _s == _i["rarityOverride"]]), Item.Rarity["Rubbish"]), # random.choice(list(Item.Rarity))
+      _i["price"], _i["origin"]
+    )
+    ITEM_LIST.append(i)
+
 
 class Storehouse:
   stock = {}
@@ -145,30 +187,31 @@ class Mechanics:
       self.inputEnd = _ie
   
 class Npc:
-  class NPC_TYPE:
-    Civilian: 0
-    Merchant: 1
-    Wizard: 4
-    Guard: 10
-    Thief: 11
+  NPC_TYPE = {
+    "Civilian": 0,
+    "Merchant": 1,
+    "Wizard": 4,
+    "Guard": 10,
+    "Thief": 11
+  }
   
-  class Status:
-    _None: None
-    Buying: 0
-    Selling: 1
-    LookingFor: 2
+  Status = {
+    "Buying": "buy",
+    "Selling": "sell",
+    "LookingFor": "look for"
+  }
 
-  npcStats = {
+  npcStatsTemplate = {
     "name": None,
     "faction": None,
-    "type": 0, #NPC_TYPE.Civilian,
-    "status": None, # Status.Buying,
+    "type": NPC_TYPE["Civilian"],
+    "status": Status["Buying"],
     "attribute": None,
   }
   def getAttributes(self):
-    return self.npcStats
+    return self.npcStatsTemplate
 
-  def new(self):
+  def new(self, _t=NPC_TYPE["Civilian"]):
     attributeTemplate = {
       "armLeft": [
         "normal","stolen"
@@ -186,20 +229,27 @@ class Npc:
     att = [_a for _a in attributeTemplate.items()]
     for _bp,_a in att:
       attChance = random.randint(0,5)/5
-      print(f"The Att of {_bp}: {_a} | {attChance}")
       attributeTemplate[_bp] = random.choice(_a[1:]) if attChance >= 0.8 else _a[0]
-    self.npcStats["attributes"] = attributeTemplate
-    print(f"\tNPC CREATED -> {attributeTemplate}")
+    self.attributes = attributeTemplate
+    for x in range(0,3):
+      item = Item(None,None,None,None,None)
+      self.inventory.append(item.generateRandomItem())
+    return
+
+  def test_Interact():
+    atts = Npc.getAttributes()
+    what = atts["status"] in list(Npc.Status.keys())
+    print(f"[NPC]  {atts.name} wants to {what}")
     return
   
   def __init__(self) -> None:
-    npcStats = {
-      "name": None,
-      "faction": None,
-      "type": 0, # Npc.NPC_TYPE.Civilian,
-      "status":0, # Npc.Status.Buying,
-      "attribute": None,
-    }
+    self.name = "Lad" # self.npcStatsTemplate["name"]
+    # npcStats = self.npcStatsTemplate
+    self.faction= None
+    self.npcType= Npc.NPC_TYPE["Civilian"]
+    self.status= Npc.Status["Buying"]
+    self.inventory = []
+    self.attributes= None
     
 
 class User:
@@ -241,6 +291,15 @@ class System:
     #     res = MorseLexicon[_c]
     #   if(res==[]): return
     #   return res#[0]
+  def interact(_e):
+    # Set here the methods for each key event
+      keyShortcuts = {
+        "b" : "buy",
+        "s": "sell",
+        "h": "haggle",
+      }
+      key = keyShortcuts.get(_e.name) if keyShortcuts.get(_e.name) != None else _e.name
+      print(f"[KeyEvt @ System.interact]  {key}")
 
   @staticmethod
   def main():
@@ -276,19 +335,24 @@ class System:
     while True:
       if(keyboard.is_pressed('escape')): print("\nPROGRAM TERMINATED"); break
       
-      # TESTING
-      tmpCiv = npc.new()
+      # Creates a new NPC for interaction
+      npc = Npc()
+      npc.new()
+      # npc.test_Interact()
+      msgStatus = {
+        "Buying": "buy",
+        "Selling": "sell",
+        "LookingFor": "look for"
+      }
+      what = [_s for _s, q in Npc.Status.items() if q == npc.status][0]
+      # what = next(_s for _s in list(Npc.Status.keys()) if npc.status == _s)
+      print(f"[NPC]  {npc.name} wants to {msgStatus[what]} {random.choice(npc.inventory)}")
 
       event = keyboard.read_event()
       # THIS IS WHERE THE PROGRAM HALTS UNTIL AN INPUT IS PRESSED
       if event.event_type == keyboard.KEY_DOWN:# and event.name != '>':
-        # Set here the methods for each key event
-        keyShortcuts = {
-          "b" : "buy",
-          "s": "sell",
-          "h": "haggle",
-        }
-        key = keyShortcuts.get(event.name) if keyShortcuts.get(event.name) != None else event.name
+        System.interact(event)
+        
         
       # return { "msg": None, "status": -1 }
 

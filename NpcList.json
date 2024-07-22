@@ -1,0 +1,22 @@
+{
+  "template": {
+    "_id": "__template__",
+    "name": "",
+    "faction": null,
+    "origin": null,
+    "attribute":[]
+  },
+  "Civilian": [
+    {
+      "_id": "mary",
+      "name": "Mary",
+      "faction": null,
+      "origin": null,
+      "attribute":[]
+    }
+  ],
+  "Merchant": [],
+  "Wizard": [],
+  "Guard": [],
+  "Thief": []
+}
