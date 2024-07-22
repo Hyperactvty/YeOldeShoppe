@@ -51,20 +51,28 @@ class Item:
     # Make a list of random names, like "Hrgaburt"
 
   Rarity={
-      "Rubbish": {"type": "Rubbish", "col": "gray", "taxRate": 0},
-      "Common": {"type": "Common", "col": "white", "taxRate": 5},
-      "Rare": {"type": "Rare", "col": "blue", "taxRate": 10},
-      "Epic": {"type": "Epic", "col": "purple", "taxRate": 20},
-      "Legendary": {"type": "Legendary", "col": "orange", "taxRate": 50},
-      "Exotic": {"type": "Exotic", "col": "red", "taxRate": 0, "desc": "You shouldn't have this..."}, # red or black may be fitting
-      "Cursed": {"type": "Cursed", "col": "dark_red", "taxRate": 0, "desc": "You shouldn't have this..."}
+      "Rubbish": {"type": "Rubbish", "abbv":"-", "col": "gray", "taxRate": 0, "weight":5500},
+      "Common": {"type": "Common", "abbv":"C", "col": "white", "taxRate": 5, "weight":5000},
+      "Rare": {"type": "Rare", "abbv":"R", "col": "blue", "taxRate": 10, "weight":3000},
+      "Epic": {"type": "Epic", "abbv":"E", "col": "purple", "taxRate": 20, "weight":1500},
+      "Legendary": {"type": "Legendary", "abbv":"L", "col": "orange", "taxRate": 50, "weight":500}, # 1
+      "Exotic": {"type": "Exotic", "abbv":"EX", "col": "red", "taxRate": 0, "desc": "You shouldn't have this...", "weight":25}, # red or black may be fitting
+      "Cursed": {"type": "Cursed", "abbv":"CRSD", "col": "dark_red", "taxRate": 0, "desc": "You shouldn't have this...", "weight":10}
   }
 
   def generateRandomItem(self):
     r = None
+    
+    w = sum(Item.Rarity[key]["weight"] for key in Item.Rarity)
+    wp = random.randint(1,w); rar = 0
+    for _rw in (Item.Rarity[key]["weight"] for key in Item.Rarity):
+      if(wp <= _rw): break
+      else: rar+=1; wp-=_rw
+      # print(f"Item Tier -> {_rw} >= {wp}")
+
     # Do-while loop in Python
     while(True): 
-      r = random.choice(list(ITEM_LIST))
+      r = random.choice(list([_i for _i in ITEM_LIST if _i.rarity["type"] == list(Item.Rarity.values())[rar]["type"]]))
       # Does the `requiredKeyEvents` checks before allowing the item to be added, otherwise the loop will choose another item.
       for _e in r.requiredKeyEvents:
         # print(f"{_e} -> {KEY_EVENTS.get(list(_e.keys())[0])} == {list(_e.values())[0]} ?")
@@ -77,7 +85,7 @@ class Item:
         print(f"[SUCCESS] -> {r.name}")
         break
     self = r
-    # next(iter([_s for _s in Item.Rarity.items() if _s == _i["rarityOverride"]]), random.choice(list(Item.Rarity))),
+    # next(iter([_s for _s in Item.Rarity.items() if _s == _i["rarity"]]), random.choice(list(Item.Rarity))),
     return self
 
   def __init__(self, _n: str, _d: str, _r: Rarity, _rke: list, _v: int, _o: Origin):
@@ -95,11 +103,13 @@ jsonfile.close()
 for _i in data["items"]:
     i = Item(
       _i["name"],_i["description"], 
-      next(iter([_s for _s in Item.Rarity.items() if _s == _i["rarityOverride"]]), Item.Rarity["Rubbish"]), # random.choice(list(Item.Rarity))
+      next(iter([Item.Rarity[k] for k in Item.Rarity if k == _i["rarity"]]), Item.Rarity["Rubbish"]),
+      # next(iter([_s for _s in Item.Rarity.items() if _s == _i["rarity"]]), Item.Rarity["Rubbish"]), # random.choice(list(Item.Rarity))
       _i["requiredKeyEvents"],
       _i["value"], _i["origin"]
     )
     ITEM_LIST.append(i)
+    print(f"[Execution@ITEM_LIST]  {i.rarity}")
 
 
 class Storehouse:
@@ -312,7 +322,7 @@ class System:
       if _e.event_type == keyboard.KEY_DOWN:
         keyShortcuts = {
           "up" : "pursuede",
-          "enter": "accept",
+          "right": "accept",
           "down": "decline",
         }
         key = keyShortcuts.get(_e.name) if keyShortcuts.get(_e.name) != None else _e.name
@@ -366,7 +376,7 @@ class System:
       item = random.choice(npc.inventory)
       print(item.value)
       print(gm.General.currencyConverter(math.floor(item.value)*0.75))
-      print(f"[NPC]  {npc.name} wants to {msgStatus[what]} {item.name} in the price range of {gm.General.currencyConverter(math.floor(item.value*0.75))} - {gm.General.currencyConverter(math.ceil(item.value*1.25))}")
+      print(f"[NPC]  {npc.name} wants to {msgStatus[what]} [{item.rarity['abbv']}]{item.name} in the price range of {gm.General.currencyConverter(math.floor(item.value*0.75))} - {gm.General.currencyConverter(math.ceil(item.value*1.25))}")
 
       event = keyboard.read_event()
       # THIS IS WHERE THE PROGRAM HALTS UNTIL AN INPUT IS PRESSED
