@@ -8,7 +8,7 @@
     "rarityOverride": null,
     "minLevelUnlock":0,
     "requiredKeyEvents": [],
-    "price":0,
+    "value":0,
     "origin":null
   },
   "items": [
@@ -21,7 +21,7 @@
         "rarityOverride": "Common",
         "minLevelUnlock":0,
         "requiredKeyEvents": [],
-        "price":25,
+        "value":25,
         "origin":null
       },
       {
@@ -32,8 +32,8 @@
         "canHaveSuffix": false,
         "rarityOverride": "Cursed",
         "minLevelUnlock":0,
-        "requiredKeyEvents": ["npc_stolen_MaryArm"],
-        "price":125,
+        "requiredKeyEvents": [{"npc_stolen_MaryArm": true}, {"Hamster": true}],
+        "value":125,
         "origin":"Mary's Body"
       },
       {
@@ -45,7 +45,7 @@
         "rarityOverride": "Rubbish",
         "minLevelUnlock":0,
         "requiredKeyEvents": [],
-        "price":2,
+        "value":2,
         "origin":null
       }
   ]

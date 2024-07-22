@@ -1,3 +1,4 @@
-[
-  { "npc_stolen_MaryArm": false } 
-]
+{
+  "npc_stolen_MaryArm": true,
+  "npc_deceased_MaryArm": false
+}

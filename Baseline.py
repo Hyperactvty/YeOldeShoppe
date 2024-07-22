@@ -65,24 +65,27 @@ class Item:
     # Do-while loop in Python
     while(True): 
       r = random.choice(list(ITEM_LIST))
-      # Does the `requiredKeyEvents` checks before allowing the item to be added, otherwise the loop choosed another item.
-      for _e in r["requiredKeyEvents"]:
-        if(KEY_EVENTS[_e]):
-          print(f"Found Event -> {_e}")
-          break 
+      # Does the `requiredKeyEvents` checks before allowing the item to be added, otherwise the loop will choose another item.
+      for _e in r.requiredKeyEvents:
+        # print(f"{_e} -> {KEY_EVENTS.get(list(_e.keys())[0])} == {list(_e.values())[0]} ?")
+        if(KEY_EVENTS.get(list(_e.keys())[0]) == list(_e.values())[0]):
           continue
-      # any(_c in q for q in vals)
-      else: 
+        else: 
+          print(f"A parameter of [{r.name}] is not fufilled.")
+          break
+      else:
+        print(f"[SUCCESS] -> {r.name}")
         break
-    print(r.name)
+    self = r
     # next(iter([_s for _s in Item.Rarity.items() if _s == _i["rarityOverride"]]), random.choice(list(Item.Rarity))),
-    return
+    return self
 
-  def __init__(self, _n: str, _d: str, _r: Rarity, _p: int, _o: Origin):
+  def __init__(self, _n: str, _d: str, _r: Rarity, _rke: list, _v: int, _o: Origin):
     self.name = _n
     self.description = _d
     self.rarity = _r
-    self.price = _p
+    self.requiredKeyEvents = _rke
+    self.value = _v
     self.origin = _o
 
 # Adding the items from the `ItemList.json` to the list `ITEM_LIST`
@@ -93,7 +96,8 @@ for _i in data["items"]:
     i = Item(
       _i["name"],_i["description"], 
       next(iter([_s for _s in Item.Rarity.items() if _s == _i["rarityOverride"]]), Item.Rarity["Rubbish"]), # random.choice(list(Item.Rarity))
-      _i["price"], _i["origin"]
+      _i["requiredKeyEvents"],
+      _i["value"], _i["origin"]
     )
     ITEM_LIST.append(i)
 
@@ -150,10 +154,15 @@ class Mechanics:
       # }
     }
     def currencyConverter(_amt: int):
+      res = {}
       gold=math.floor(_amt/10000); _amt-=gold*10000
       silver=math.floor(_amt/100); _amt-=silver*100
       copper=_amt
-      return {"g": gold, "s": silver, "c": copper}
+      if gold > 0: res.update({"g": gold})
+      if silver > 0: res.update({"s": silver})
+      if copper > 0: res.update({"c": copper})
+      # return {"g": gold, "s": silver, "c": copper}
+      return res
     
     def __init__(self) -> None:
       data={
@@ -232,7 +241,7 @@ class Npc:
       attributeTemplate[_bp] = random.choice(_a[1:]) if attChance >= 0.8 else _a[0]
     self.attributes = attributeTemplate
     for x in range(0,3):
-      item = Item(None,None,None,None,None)
+      item = Item(None,None,None,None,None,None)
       self.inventory.append(item.generateRandomItem())
     return
 
@@ -300,6 +309,14 @@ class System:
       }
       key = keyShortcuts.get(_e.name) if keyShortcuts.get(_e.name) != None else _e.name
       print(f"[KeyEvt @ System.interact]  {key}")
+      if _e.event_type == keyboard.KEY_DOWN:
+        keyShortcuts = {
+          "up" : "pursuede",
+          "enter": "accept",
+          "down": "decline",
+        }
+        key = keyShortcuts.get(_e.name) if keyShortcuts.get(_e.name) != None else _e.name
+        print(f"[KeyEvt @ System.interact]  {key}")
 
   @staticmethod
   def main():
@@ -346,11 +363,14 @@ class System:
       }
       what = [_s for _s, q in Npc.Status.items() if q == npc.status][0]
       # what = next(_s for _s in list(Npc.Status.keys()) if npc.status == _s)
-      print(f"[NPC]  {npc.name} wants to {msgStatus[what]} {random.choice(npc.inventory)}")
+      item = random.choice(npc.inventory)
+      print(item.value)
+      print(gm.General.currencyConverter(math.floor(item.value)*0.75))
+      print(f"[NPC]  {npc.name} wants to {msgStatus[what]} {item.name} in the price range of {gm.General.currencyConverter(math.floor(item.value*0.75))} - {gm.General.currencyConverter(math.ceil(item.value*1.25))}")
 
       event = keyboard.read_event()
       # THIS IS WHERE THE PROGRAM HALTS UNTIL AN INPUT IS PRESSED
-      if event.event_type == keyboard.KEY_DOWN:# and event.name != '>':
+      if event.event_type == keyboard.KEY_DOWN:
         System.interact(event)
         
         
